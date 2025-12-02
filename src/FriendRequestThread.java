@@ -14,16 +14,14 @@
  * <ul>
  *   <li>Sender adds receiver to their friend list</li>
  *   <li>Receiver adds sender to their friend list (mutual friendship)</li>
- *   <li>Duplicate friend requests are handled (no duplicate entries)</li>
+ *   <li>Duplicate friend requests are handled gracefully (no duplicate entries)</li>
  *   <li>Logs the friend request action for debugging and verification</li>
  * </ul>
  * 
  * @author Vidmahi Sistla
- * @version 1.0
+ * @version 2.0
  */
-
 public class FriendRequestThread implements Runnable {
-
     /** The student sending the friend request */
     private UniversityStudent sender;
     
@@ -37,11 +35,13 @@ public class FriendRequestThread implements Runnable {
      * @param receiver the UniversityStudent receiving the friend request
      * @throws IllegalArgumentException if sender or receiver is null
      */
-
     public FriendRequestThread(UniversityStudent sender, UniversityStudent receiver) {
-        // Constructor
+        if (sender == null || receiver == null) {
+            throw new IllegalArgumentException("Sender and receiver cannot be null");
+        }
+        this.sender = sender;
+        this.receiver = receiver;
     }
-
 
     /**
      * Executes the friend request operation in a separate thread.
@@ -60,9 +60,19 @@ public class FriendRequestThread implements Runnable {
      * 
      * @see UniversityStudent#addFriend(UniversityStudent)
      */
-
     @Override
     public void run() {
-        // Method signature only
+        try {
+            // Add each student to the other's friend list (mutual friendship)
+            sender.addFriend(receiver);
+            receiver.addFriend(sender);
+            
+            // Log the friend request
+            System.out.println(sender.name + " sent a friend request to " + receiver.name);
+            
+        } catch (Exception e) {
+            System.err.println("Error processing friend request from " + 
+                             sender.name + " to " + receiver.name + ": " + e.getMessage());
+        }
     }
 }

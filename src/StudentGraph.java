@@ -2,7 +2,7 @@ import java.util.*;
 
 /**
  * Represents a weighted undirected graph of university students and their connections.
- * This graph structure is used for various algorithms, such as:
+ * This graph structure is used for various algorithms including:
  * <ul>
  *   <li>Prim's algorithm for pod formation (forming groups of students)</li>
  *   <li>Dijkstra's algorithm for finding referral paths to internship opportunities</li>
@@ -16,7 +16,7 @@ import java.util.*;
  * which may result in disconnected components.</p>
  * 
  * @author Vidmahi Sistla
- * @version 1.0
+ * @version 2.0
  */
 public class StudentGraph {
     /**
@@ -69,7 +69,27 @@ public class StudentGraph {
      * @param students the list of UniversityStudent objects to include in the graph
      */
     public StudentGraph(List<UniversityStudent> students) {
-
+        adjacencyList = new HashMap<>();
+        
+        // Initialize adjacency list with all students
+        for (UniversityStudent student : students) {
+            adjacencyList.put(student, new ArrayList<>());
+        }
+        
+        // Add edges between all pairs of students based on connection strength
+        for (int i = 0; i < students.size(); i++) {
+            for (int j = i + 1; j < students.size(); j++) {
+                UniversityStudent s1 = students.get(i);
+                UniversityStudent s2 = students.get(j);
+                
+                int connectionStrength = s1.calculateConnectionStrength(s2);
+                
+                // Only add edge if there is a connection (strength > 0)
+                if (connectionStrength > 0) {
+                    addEdge(s1, s2, connectionStrength);
+                }
+            }
+        }
     }
 
     /**
@@ -104,6 +124,27 @@ public class StudentGraph {
      */
     public Set<UniversityStudent> getAllNodes() {
         return adjacencyList.keySet();
+    }
+
+    /**
+     * Displays the graph structure by printing each student and their connections.
+     * This method is useful for debugging and visualizing the graph structure.
+     * Output format: "StudentName -> [(Neighbor1, weight=X), (Neighbor2, weight=Y), ...]"
+     */
+    public void displayGraph() {
+        System.out.println("\n=== Student Graph Structure ===");
+        for (Map.Entry<UniversityStudent, List<Edge>> entry : adjacencyList.entrySet()) {
+            UniversityStudent student = entry.getKey();
+            List<Edge> edges = entry.getValue();
+            
+            System.out.print(student.name + " -> ");
+            if (edges.isEmpty()) {
+                System.out.println("(no connections)");
+            } else {
+                System.out.println(edges);
+            }
+        }
+        System.out.println();
     }
 
     /**

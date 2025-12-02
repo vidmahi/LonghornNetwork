@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Class for parsing student data from external files.
+ * Utility class for parsing student data from external files.
  * This class handles reading and validating student information from formatted text files
  * and creates {@link UniversityStudent} objects from the parsed data.
  * 
@@ -28,17 +28,16 @@ import java.util.*;
  * </ul>
  * 
  * @author Vidmahi Sistla
- * @version 1.0
+ * @version 2.0
  */
-
 public class DataParser {
-
+    
     /**
      * Parses student data from a file and returns a list of UniversityStudent objects.
-     * Reads the specified file line by line, extracts student attributes, and
-     * creates UniversityStudent instances.
+     * Reads the specified file line by line, extracting student attributes and
+     * creating UniversityStudent instances.
      * 
-     * <p>The method validates each field and handles missing or incomplete data.
+     * <p>The method validates each field and handles missing or malformed data gracefully.
      * Students with incomplete data may be skipped or created with default values
      * depending on which fields are missing.</p>
      * 
@@ -55,11 +54,123 @@ public class DataParser {
      * @throws IOException if the file cannot be read or does not exist
      * @throws IllegalArgumentException if the file format is invalid or contains unparseable data
      */
-
     public static List<UniversityStudent> parseStudents(String filename) throws IOException {
-        return new ArrayList<>();
+        List<UniversityStudent> students = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
+        
+        String line;
+        String name = null;
+        int age = 0;
+        String gender = null;
+        int year = 0;
+        String major = null;
+        double gpa = 0.0;
+        List<String> roommatePreferences = new ArrayList<>();
+        List<String> previousInternships = new ArrayList<>();
+        
+        try {
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                
+                // Skip empty lines
+                if (line.isEmpty()) {
+                    continue;
+                }
+                
+                // Check for student separator
+                if (line.equals("---")) {
+                    // Create student object if all required fields are present
+                    if (name != null && major != null) {
+                        UniversityStudent student = new UniversityStudent(
+                            name, age, gender, year, major, gpa,
+                            new ArrayList<>(roommatePreferences),
+                            new ArrayList<>(previousInternships)
+                        );
+                        students.add(student);
+                    }
+                    
+                    // Reset for next student
+                    name = null;
+                    age = 0;
+                    gender = null;
+                    year = 0;
+                    major = null;
+                    gpa = 0.0;
+                    roommatePreferences = new ArrayList<>();
+                    previousInternships = new ArrayList<>();
+                    continue;
+                }
+                
+                // Parse field:value pairs
+                if (!line.contains(":")) {
+                    continue;
+                }
+                
+                String[] parts = line.split(":", 2);
+                if (parts.length < 2) {
+                    continue;
+                }
+                
+                String fieldName = parts[0].trim();
+                String value = parts[1].trim();
+                
+                // Parse each field
+                switch (fieldName) {
+                    case "Name":
+                        name = value;
+                        break;
+                    case "Age":
+                        try {
+                            age = Integer.parseInt(value);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Invalid age value: " + value);
+                        }
+                        break;
+                    case "Gender":
+                        gender = value;
+                        break;
+                    case "Year":
+                        try {
+                            year = Integer.parseInt(value);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Invalid year value: " + value);
+                        }
+                        break;
+                    case "Major":
+                        major = value;
+                        break;
+                    case "GPA":
+                        try {
+                            gpa = Double.parseDouble(value);
+                        } catch (NumberFormatException e) {
+                            System.err.println("Invalid GPA value: " + value);
+                        }
+                        break;
+                    case "Roommate Preferences":
+                        roommatePreferences = parseList(value);
+                        break;
+                    case "Previous Internships":
+                        previousInternships = parseList(value);
+                        break;
+                }
+            }
+            
+            // Add the last student if file doesn't end with "---"
+            if (name != null && major != null) {
+                UniversityStudent student = new UniversityStudent(
+                    name, age, gender, year, major, gpa,
+                    roommatePreferences, previousInternships
+                );
+                students.add(student);
+            }
+            
+        } finally {
+            reader.close();
+        }
+        
+        return students;
     }
-
+    
     /**
      * Helper method to parse comma-separated lists from the input file.
      * Trims whitespace from each item and filters out empty strings.

@@ -16,7 +16,7 @@ import java.util.*;
  * <p>Edge cases handled:
  * <ul>
  *   <li>Students with empty or partial preference lists remain unpaired</li>
- *   <li>Cyclic preferences (A→B→C→A) are resolved by the proposal order</li>
+ *   <li>Cyclic preferences (A-B-C-A) are resolved by the proposal order</li>
  *   <li>Odd numbers of students will result in one student remaining unpaired</li>
  *   <li>Students without mutual preferences may remain unpaired</li>
  * </ul>
@@ -25,9 +25,8 @@ import java.util.*;
  * @version 1.0
  * @see <a href="https://www.sanfoundry.com/java-program-gale-shapley-algorithm/">Gale-Shapley Resources</a>
  */
-
 public class GaleShapley {
-
+    
     /**
      * Assigns roommates to students using the Gale-Shapley stable matching algorithm.
      * After execution, each student's roommate field will be set to their matched partner,
@@ -51,11 +50,89 @@ public class GaleShapley {
      * @param students the list of UniversityStudent objects to match for roommates
      * @throws IllegalArgumentException if the students list is null or contains invalid data
      */
-
     public static void assignRoommates(List<UniversityStudent> students) {
+        if (students == null || students.isEmpty()) {
+            return;
+        }
         
+        // Create a map of student names to student objects for quick lookup
+        Map<String, UniversityStudent> studentMap = new HashMap<>();
+        for (UniversityStudent student : students) {
+            studentMap.put(student.name, student);
+        }
+        
+        // Track which students are free (not yet paired)
+        Queue<UniversityStudent> freeStudents = new LinkedList<>();
+        
+        // Track the next preference index for each student
+        Map<UniversityStudent, Integer> nextProposal = new HashMap<>();
+        
+        // Initialize: all students with preferences start as free
+        for (UniversityStudent student : students) {
+            if (!student.roommatePreferences.isEmpty()) {
+                freeStudents.add(student);
+                nextProposal.put(student, 0);
+            }
+        }
+        
+        // Main Gale-Shapley loop
+        while (!freeStudents.isEmpty()) {
+            UniversityStudent proposer = freeStudents.poll();
+            
+            // Skip if already paired (might have been paired while in queue)
+            if (proposer.getRoommate() != null) {
+                continue;
+            }
+            
+            // Get next preference to propose to
+            int proposalIndex = nextProposal.get(proposer);
+            
+            // If proposer has exhausted all preferences, they remain unpaired
+            if (proposalIndex >= proposer.roommatePreferences.size()) {
+                continue;
+            }
+            
+            String preferredName = proposer.roommatePreferences.get(proposalIndex);
+            nextProposal.put(proposer, proposalIndex + 1);
+            
+            // Check if preferred student exists
+            UniversityStudent preferred = studentMap.get(preferredName);
+            if (preferred == null) {
+                // Preferred student doesn't exist, try next preference
+                freeStudents.add(proposer);
+                continue;
+            }
+            
+            // Check if preferred student is free
+            if (preferred.getRoommate() == null) {
+                // Accept the proposal
+                proposer.setRoommate(preferred);
+                preferred.setRoommate(proposer);
+            } else {
+                // Preferred student is already paired
+                UniversityStudent currentRoommate = preferred.getRoommate();
+                
+                // Check if preferred student prefers proposer over current roommate
+                int proposerRank = getPreferenceRank(preferred, proposer.name);
+                int currentRank = getPreferenceRank(preferred, currentRoommate.name);
+                
+                // If proposer is ranked higher (lower index = higher preference)
+                if (proposerRank != -1 && (currentRank == -1 || proposerRank < currentRank)) {
+                    // Break current
+                    currentRoommate.setRoommate(null);
+                    freeStudents.add(currentRoommate);
+                    
+                    // Accept new proposal
+                    proposer.setRoommate(preferred);
+                    preferred.setRoommate(proposer);
+                } else {
+                    // Proposal rejected, proposer remains free
+                    freeStudents.add(proposer);
+                }
+            }
+        }
     }
-
+    
     /**
      * Gets the preference rank of a target student in another student's preference list.
      * Lower index values indicate higher preference.
@@ -72,5 +149,4 @@ public class GaleShapley {
         }
         return -1; // Not in preference list
     }
-
 }
