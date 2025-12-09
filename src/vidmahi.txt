@@ -1,0 +1,102 @@
+
+========================================
+=== Running Test Case 1 ===
+========================================
+
+--- Built-in Test Data for Test Case 1 ---
+UniversityStudent{name='Alice', age=20, gender='Female', year=2, major='Computer Science', gpa=3.50, roommatePreferences=[Bob, Charlie, Frank], previousInternships=[Google], roommate=None}
+UniversityStudent{name='Bob', age=21, gender='Male', year=3, major='Computer Science', gpa=3.70, roommatePreferences=[Alice, Charlie, Frank], previousInternships=[Google, Microsoft], roommate=None}
+UniversityStudent{name='Charlie', age=20, gender='Male', year=2, major='Mathematics', gpa=3.20, roommatePreferences=[Alice, Bob, Frank], previousInternships=[None], roommate=None}
+UniversityStudent{name='Frank', age=23, gender='Male', year=3, major='Chemistry', gpa=3.10, roommatePreferences=[Alice, Bob, Charlie], previousInternships=[], roommate=None}
+UniversityStudent{name='Dana', age=22, gender='Female', year=4, major='Biology', gpa=3.80, roommatePreferences=[Evan], previousInternships=[Pfizer], roommate=None}
+UniversityStudent{name='Evan', age=22, gender='Male', year=4, major='Biology', gpa=3.60, roommatePreferences=[Dana], previousInternships=[Moderna, Pfizer], roommate=None}
+
+--- Automated Tests for Test Case 1 ---
+
+=== Student Graph Structure ===
+Dana -> [(Evan, weight=6)]
+Bob -> [(Alice, weight=5)]
+Alice -> [(Bob, weight=5), (Charlie, weight=1)]
+Charlie -> [(Alice, weight=1)]
+Frank -> (no connections)
+Evan -> [(Dana, weight=6)]
+
+Test: StudentGraph passed (+30 pts).
+Test: GaleShapley passed (+20 pts).
+Bob sent a friend request to Alice
+Alice sent a friend request to Bob
+Bob sent message to Alice: "Hi back!"
+Alice sent message to Bob: "Hello there!"
+Test: FriendRequestThread/ChatThread passed (+20 pts).
+ReferralPathFinder returned path: []
+Test: ReferralPathFinder passed (+10 pts).
+Test: Integration passed (+20 pts).
+
+Total Score for Test Case 1: 100
+
+Test Case 1 Final Score: 100
+
+========================================
+=== Running Test Case 2 ===
+========================================
+
+--- Built-in Test Data for Test Case 2 ---
+UniversityStudent{name='Greg', age=24, gender='Male', year=4, major='Economics', gpa=3.40, roommatePreferences=[Helen, Ivy], previousInternships=[InternshipA], roommate=None}
+UniversityStudent{name='Helen', age=24, gender='Female', year=4, major='Economics', gpa=3.50, roommatePreferences=[Greg, Ivy], previousInternships=[InternshipB], roommate=None}
+UniversityStudent{name='Ivy', age=25, gender='Female', year=4, major='Economics', gpa=3.80, roommatePreferences=[Helen, Greg], previousInternships=[DummyCompany], roommate=None}
+
+--- Automated Tests for Test Case 2 ---
+
+=== Student Graph Structure ===
+Greg -> [(Helen, weight=3), (Ivy, weight=2)]
+Ivy -> [(Greg, weight=2), (Helen, weight=2)]
+Helen -> [(Greg, weight=3), (Ivy, weight=2)]
+
+Test: StudentGraph passed (+30 pts).
+Test: GaleShapley passed (+20 pts).
+Greg sent a friend request to Helen
+Greg sent message to Helen: "Hello there!"
+Helen sent a friend request to Greg
+Helen sent message to Greg: "Hi back!"
+Test: FriendRequestThread/ChatThread passed (+20 pts).
+ReferralPathFinder returned path: [UniversityStudent{name='Greg', age=24, gender='Male', year=4, major='Economics', gpa=3.40, roommatePreferences=[Helen, Ivy], previousInternships=[InternshipA], roommate=Helen}, UniversityStudent{name='Ivy', age=25, gender='Female', year=4, major='Economics', gpa=3.80, roommatePreferences=[Helen, Greg], previousInternships=[DummyCompany], roommate=None}]
+Test: ReferralPathFinder passed (+10 pts).
+Test: Integration passed (+20 pts).
+
+Total Score for Test Case 2: 100
+
+Test Case 2 Final Score: 100
+
+========================================
+=== Running Test Case 3 ===
+========================================
+
+--- Built-in Test Data for Test Case 3 ---
+UniversityStudent{name='Jack', age=19, gender='Male', year=1, major='History', gpa=3.00, roommatePreferences=[Kim], previousInternships=[MuseumIntern], roommate=None}
+UniversityStudent{name='Kim', age=19, gender='Female', year=1, major='History', gpa=3.20, roommatePreferences=[Jack], previousInternships=[MuseumIntern], roommate=None}
+UniversityStudent{name='Leo', age=20, gender='Male', year=1, major='History', gpa=3.50, roommatePreferences=[], previousInternships=[None], roommate=None}
+
+--- Automated Tests for Test Case 3 ---
+
+=== Student Graph Structure ===
+Leo -> [(Jack, weight=2), (Kim, weight=2)]
+Jack -> [(Kim, weight=6), (Leo, weight=2)]
+Kim -> [(Jack, weight=6), (Leo, weight=2)]
+
+Test: StudentGraph passed (+30 pts).
+Test: GaleShapley passed (+20 pts).
+Jack sent a friend request to Kim
+Jack sent message to Kim: "Hello there!"
+Kim sent a friend request to Jack
+Kim sent message to Jack: "Hi back!"
+Test: FriendRequestThread/ChatThread passed (+20 pts).
+ReferralPathFinder returned path: []
+Test: ReferralPathFinder passed (+10 pts).
+Test: Integration passed (+20 pts).
+
+Total Score for Test Case 3: 100
+
+Test Case 3 Final Score: 100
+
+========================================
+Average Score across all test cases: 100

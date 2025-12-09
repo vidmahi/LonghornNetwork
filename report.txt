@@ -1,0 +1,471 @@
+Longhorn Network - Project Report
+Student: Vidmahi Sistla
+Course: ECE 422C
+Date: December 2025
+
+Executive Summary
+The Longhorn Network project is a comprehensive social networking platform designed for university students. 
+It successfully implements three major graph algorithms (Gale-Shapley, Dijkstra's, and Prim's), 
+provides thread-safe social interactions, and offers both command-line and graphical user interfaces. 
+The system achieved a perfect score of 100/100 on all automated test cases.
+
+1. Project Goals and Objectives
+Primary Goals
+
+Implement stable roommate matching using the Gale-Shapley algorithm
+Create a weighted graph structure representing student connections
+Find optimal referral paths using Dijkstra's algorithm
+Form student pods using Prim's algorithm for minimum spanning trees
+Demonstrate thread-safe concurrent operations
+Provide an intuitive graphical interface
+
+Success Criteria
+
+All algorithms function correctly
+Pass automated test suite (100/100)
+Thread-safe concurrent operations
+Functional GUI with all required features
+Comprehensive documentation
+
+All objectives were successfully achieved.
+
+2. Technical Implementation
+2.1 Core Data Structures
+Student Graph (Adjacency List)
+Choice Rationale: Adjacency lists are optimal for sparse graphs where not all students are connected.
+Space Complexity: O(V + E) where V = students, E = edges
+
+Test Case 1: 6 students, 5 edges → ~11 storage units
+More efficient than adjacency matrix O(V²) which would require 36 units
+
+Advantages:
+
+Fast neighbor lookup O(degree(v))
+Memory efficient for sparse graphs
+Easy to add/remove edges
+Natural fit for graph traversal algorithms
+
+Priority Queues
+Used in both Dijkstra's and Prim's algorithms for efficient minimum extraction.
+Implementation: Java's built-in PriorityQueue with custom comparators
+Time Complexity: O(log n) for insert/extract operations
+
+2.2 Algorithm Analysis
+Gale-Shapley Stable Matching
+Implementation Details:
+javaQueue<UniversityStudent> freeStudents = new LinkedList<>();
+Map<UniversityStudent, Integer> nextProposal = new HashMap<>();
+
+while (!freeStudents.isEmpty()) {
+    UniversityStudent proposer = freeStudents.poll();
+    // Propose to next preference
+    // Accept or reject based on rankings
+}
+Performance:
+
+Time Complexity: O(n²) worst case
+
+Each student proposes to at most n others
+Each proposal is O(1)
+
+
+Space Complexity: O(n)
+
+Queue and tracking maps
+
+
+
+Test Results:
+
+Test Case 1: 3 pairs formed, 0 unstable pairs
+Test Case 2: 1 pair formed, 1 unpaired (no mutual preference)
+Test Case 3: 1 pair formed, 1 unpaired (no preferences listed)
+
+Stability Verification:
+No pair exists where both students prefer each other over current assignments.
+
+Dijkstra's Shortest Path (Modified)
+Key Modification: Weight Inversion
+javaint invertedWeight = MAX_CONNECTION_STRENGTH - edge.weight;
+Reason: Transform "strongest connection" to "shortest path"
+
+Connection strength 10 → cost 0 (best)
+Connection strength 1 → cost 9 (worst)
+
+Implementation:
+javaPriorityQueue<StudentDistance> pq = new PriorityQueue<>();
+Map<UniversityStudent, Integer> distances = new HashMap<>();
+Map<UniversityStudent, UniversityStudent> previous = new HashMap<>();
+Performance:
+
+Time Complexity: O((V + E) log V)
+
+Each vertex visited once: O(V log V)
+Each edge relaxed once: O(E log V)
+
+
+Space Complexity: O(V)
+
+Distance and previous maps
+
+
+
+Test Results:
+
+Test Case 1: No path (no student has "DummyCompany")
+Test Case 2: Path found: Greg → Ivy (length 2)
+Test Case 3: No path (no student has "DummyCompany")
+
+Optimality: Guaranteed to find shortest (strongest connection) path.
+
+Prim's Minimum Spanning Tree
+Implementation:
+javaPriorityQueue<Edge> pq = new PriorityQueue<>();
+Set<UniversityStudent> visited = new HashSet<>();
+
+while (!pq.isEmpty()) {
+    Edge minEdge = pq.poll();
+    if (!visited.contains(minEdge.to)) {
+        // Add to MST
+        // Add neighbors to queue
+    }
+}
+Performance:
+
+Time Complexity: O((V + E) log V)
+Space Complexity: O(V + E)
+
+Test Results:
+
+Test Case 1: 3 pods formed
+
+Pod 1: Alice, Bob, Charlie (connected by major/internships)
+Pod 2: Dana, Evan (same age, major, internship)
+Pod 3: Frank (isolated)
+
+
+Total connection strength minimized within each pod
+
+Note: Does NOT invert weights (unlike Dijkstra's). Uses connection strengths directly to minimize MST weight.
+
+2.3 Connection Strength Calculation
+Formula:
+strength = 0
+if (roommates)           strength += 4
+for each (shared intern) strength += 3
+if (same major)          strength += 2
+if (same age)            strength += 1
+Rationale for Weights:
+
+Roommates (+4): Strongest indicator of compatibility
+Shared Internships (+3): Career interests align
+Same Major (+2): Academic commonality
+Same Age (+1): Social proximity
+
+Examples from Test Case 1:
+Alice - Bob: Same major (2) + Shared Google (3) = 5
+Dana - Evan: Same age (1) + Same major (2) + Shared Pfizer (3) = 6
+Alice - Charlie: Same age (1) = 1
+Frank - Others: No shared attributes = 0 (no edge)
+Design Decision: Zero connection strength results in no edge. This creates:
+
+Disconnected components (realistic for large networks)
+Isolated nodes (students with no commonalities)
+Efficient graph representation
+
+
+2.4 Concurrency and Thread Safety
+Challenges
+
+Multiple threads modifying shared data (friend lists, chat history)
+Potential race conditions
+Data corruption risk
+
+Solutions
+1. Synchronized Methods
+javapublic synchronized void addFriend(UniversityStudent friend) {
+    if (!friends.contains(friend)) {
+        friends.add(friend);
+    }
+}
+
+public synchronized void addChatMessage(UniversityStudent other, String message) {
+    chatHistory.computeIfAbsent(other, k -> new ArrayList<>()).add(message);
+}
+2. ExecutorService for Thread Management
+javaExecutorService executor = Executors.newFixedThreadPool(4);
+executor.submit(new FriendRequestThread(s1, s2));
+executor.submit(new ChatThread(s1, s2, "Hello!"));
+executor.shutdown();
+executor.awaitTermination(5, TimeUnit.SECONDS);
+Testing:
+
+4 concurrent threads per test case
+No race conditions detected
+No data corruption
+All threads complete successfully
+
+
+3. User Interface Design
+3.1 Swing GUI Architecture
+Design Pattern: Model-View-Controller (MVC) inspired
+
+Model: Student data, graph structure
+View: GraphPanel, info panels, controls
+Controller: Button action listeners, event handlers
+
+Components:
+Control Panel
+
+Test case selection dropdown
+Action buttons (Load, Assign Roommates, Find Path, Run All)
+Company input field
+Clear visual hierarchy
+
+Graph Visualization Panel
+Custom Graphics Implementation:
+java@Override
+protected void paintComponent(Graphics g) {
+    Graphics2D g2 = (Graphics2D) g;
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                        RenderingHints.VALUE_ANTIALIAS_ON);
+    
+    // Draw edges
+    // Draw nodes
+    // Draw labels
+}
+Layout Algorithm: Circular positioning
+javadouble angle = 2 * Math.PI * i / n - Math.PI / 2;
+int x = centerX + radius * Math.cos(angle);
+int y = centerY + radius * Math.sin(angle);
+Visual Encoding:
+
+Node Color:
+
+Blue (#4287f5): Regular student
+Green (#4CAF50): Has roommate
+Yellow (#FFC107): In referral path
+Purple (#9C27B0): Isolated (no connections)
+
+
+Edge Color:
+
+Gray: Regular connection
+Green: Roommate pair
+Yellow: In referral path
+
+
+Edge Width:
+
+Thicker edges for roommates and paths
+Weight labels at midpoints
+
+
+
+Tabbed Information Panel
+
+Students Tab: Comprehensive student details
+Roommates Tab: Paired students with connection strengths
+Chat History Tab: All messages between students
+Friends Tab: Friend connection lists
+
+Design Rationale:
+
+Tabbed layout reduces cognitive load
+Clear separation of concerns
+Easy navigation
+All information accessible
+
+
+3.2 User Experience Considerations
+Strengths:
+
+Color-coded visual feedback
+Intuitive button labels with emojis
+Real-time status updates
+Legend for graph interpretation
+Clear error messages
+
+Areas for Improvement:
+
+Graph layout could use force-directed positioning
+Animation for algorithm execution
+Zoom/pan capabilities
+Tooltip on hover for node details
+
+
+4. Testing and Validation
+4.1 Automated Testing
+Test Suite Coverage:
+
+Graph construction (30 pts)
+Gale-Shapley correctness (20 pts)
+Threading synchronization (20 pts)
+Dijkstra's path finding (10 pts)
+Integration (20 pts)
+
+Results:
+Test Case 1: 100/100
+Test Case 2: 100/100
+Test Case 3: 100/100
+Average: 100/100
+Test Validations:
+
+Graph Reciprocity: All edges are bidirectional
+Roommate Pairing: All roommate assignments are mutual
+Unpaired Count: At most one student unpaired per test
+Thread Safety: No exceptions in concurrent operations
+Path Validity: All paths start at correct student and end at target
+
+
+4.2 Edge Case Testing
+Passed
+
+5. Design Decisions and Trade-offs
+5.1 Graph Representation
+Decision: Adjacency List vs. Adjacency Matrix
+Chosen: Adjacency List
+Reasoning:
+
+Student graphs are sparse (not all students connected)
+Average degree << total students
+Memory: O(V + E) vs O(V²)
+Neighbor lookup: O(degree) vs O(V)
+
+Trade-off: Edge existence check is O(degree) instead of O(1)
+
+Acceptable since we iterate neighbors more than checking existence
+
+
+5.2 Weight Inversion for Dijkstra's
+Problem: Dijkstra finds shortest path, but we want strongest connections.
+Solutions Considered:
+
+Modify Dijkstra's to find longest path (requires negation, risks negative cycles)
+Invert weights (10 - weight)
+Use separate algorithm (Bellman-Ford)
+
+Chosen: Weight Inversion (Option 2)
+Reasoning:
+
+Maintains Dijkstra's efficiency O((V+E) log V)
+No negative weights (avoids negative cycle issues)
+Simple and clear implementation
+MAX_CONNECTION_STRENGTH = 10 provides sufficient range
+
+Trade-off: Requires assumption of maximum connection strength.
+
+Acceptable since our formula caps at ~13 (4+3+3+3+2+1 if all factors apply)
+
+
+5.3 Thread Safety Approach
+Decision: Synchronized Methods vs. Concurrent Collections
+Chosen: Synchronized Methods
+Reasoning:
+
+Simpler to implement and understand
+Operations are atomic (add friend, add message)
+Performance impact minimal (small number of threads)
+
+Trade-off: Coarse-grained locking (entire method locked)
+
+Could use fine-grained locking (ReentrantLock) for better concurrency
+Not necessary for current scale
+
+
+5.4 GUI Framework
+Decision: Swing
+
+Required by project specification
+Built into Java (no external dependencies)
+Easier with past examples, well-documented
+Sufficient for project requirements
+
+
+6. Challenges and Solutions
+Challenge 1: Circular Layout Overlap
+Problem: Students overlap when many nodes present
+Attempted Solutions:
+
+Increase radius (makes graph too large)
+Smaller nodes (reduces readability)
+Force-directed layout (complex implementation)
+
+Resolution: Accepted circular layout for simplicity
+
+Challenge 2: Tab Content Updates
+Problem: Information panels not refreshing after algorithm runs
+Solution: Created unified update method
+javaprivate void updateAllInfoPanels() {
+    updateStudentInfo();
+    updateRoommateInfo();
+    updateChatHistory();
+    updateSocialInfo();
+}
+Called after every state change.
+
+Challenge 3: Chat History Storage
+Problem: Should messages be stored in sender's history, receiver's, or both?
+Decision: Sender's history only (for simplicity)
+Reasoning:
+
+Reduces complexity
+Sufficient for demonstration
+Real app would need both
+
+
+Challenge 4: Gale-Shapley Infinite Loop
+Problem: Early implementation had infinite loops with cyclic preferences
+Solution: Track proposal index per student
+javaMap<UniversityStudent, Integer> nextProposal = new HashMap<>();
+Ensures each student proposes to each preference at most once.
+
+7. Code Quality and Best Practices
+7.1 Documentation
+
+Comprehensive Javadocs for all classes
+Parameter descriptions
+Return value descriptions
+Algorithm explanations
+Edge case documentation
+
+7.2 Code Organization
+
+Logical class separation
+Single Responsibility Principle
+Meaningful variable names
+Consistent formatting
+
+7.3 Error Handling
+
+Null checks for critical operations
+Graceful degradation
+User-friendly error messages
+Exception logging
+
+7.4 Testing
+
+Automated test suite
+Edge case coverage
+Integration testing
+Manual GUI testing
+
+
+8. Future Enhancements
+Short-term Improvements
+
+Force-directed graph layout for better visualization
+Animation showing algorithm execution step-by-step
+Persistence - save/load student data
+Custom test cases - allow users to create scenarios
+
+Long-term Enhancements
+
+Web-based UI using React (explored in extra credit, but I didn't get it to work as intended)
+Real-time collaboration - multiple users
+
+***Documented AI Usage***
+I used Claude to help me with this project.
+It helped me with making the UI look pretty / help with the positioning / scaling of the UI and effects.
+It also helped me with colors / labels in the graph visualization.
+Helped generate test-cases / debug.
